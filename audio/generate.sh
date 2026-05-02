@@ -12,5 +12,5 @@ pico2wave --lang=de-DE -w=mp3/01/003_ok.wav "Herzlichen Glückwunsch, Deine Gehe
 pico2wave --lang=de-DE -w=mp3/01/004_fehler.wav "Das war leider falsch, bitte probiere es noch einmal, oder gehe zurück zur lezten Station!"
 pico2wave --lang=de-DE -w=mp3/01/005_auflegen.wav "Vielen Dank, ich hoffe Du hattest Spaß. Bitte lege den Höhrer auf!"
 pico2wave --lang=de-DE -w=mp3/01/006_deine_Zahlen_waren.wav "Deine Zahlen waren:"
-find ./mp3 -name "*.wav" -exec bash -c 'lame -b 128 "$1" "${1%.wav}.mp3"' _ {} \;
+find ./mp3 -name "*.wav" -exec bash -c 'lame --resample 44.1 -m j -b 128 "$1" "${1%.wav}.mp3"' _ {} \;
 find ./mp3 -name "*.wav" -delete
