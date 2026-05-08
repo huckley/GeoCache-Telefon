@@ -70,6 +70,7 @@ void loop() {
           wZustand = impuls0;
           wImpulse = 0;
           nummerLaenge=0;
+          myMP3.pause();
           Serial.println("Waehlscheibe betaetigt?");
           delay(20); // Entprellen
           break;
