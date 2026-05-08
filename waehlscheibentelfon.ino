@@ -5,16 +5,15 @@
  
 #define Telefonpin 4        // zum Telefon
 #define Ziffer_Timeout 200   // nach dieser Zeit kommt kein weiterer Impuls mehr
-#define Wahl_Timeout 2000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
-#define BUSY_PIN 5
+#define Wahl_Timeout 4000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
 
 DFRobotDFPlayerMini myMP3;
 unsigned char nummerLaenge=0;    // Laenge der gewaehlten Nummer
 unsigned char nummer[20];        // gewaehlte Nummer
 String textNummer="";
- 
+bool intro_played=false;
+
 void setup() {
-  pinMode(BUSY_PIN, INPUT);
   Serial.begin(115200);
   Serial1.begin(9600, SERIAL_8N1, 20, 21);
   Serial.println();
@@ -42,9 +41,15 @@ unsigned  long startzeit;
 unsigned  long dauer;
 
 void playmp3(int folder,int file){
+  bool fertig = false;
   myMP3.playFolder(folder,file);
-  delay(500);
-  while (digitalRead(BUSY_PIN) == LOW) {
+  while (!fertig) {
+    uint8_t type = myMP3.readType();
+    if (myMP3.available()) {
+      if (type == DFPlayerPlayFinished) {
+        fertig = true;
+      }
+    }
   }
 }
 
@@ -52,13 +57,15 @@ void loop() {
   static unsigned char wImpulse = 0; // Impulszaehler
   static unsigned long wMillis;      // Zeitmarken fuer TimeOuts
   static unsigned int wahl=0;        // Nummer als Integer
+  bool freizeichen_played=false;
   switch (wZustand){
     case ruhe:                   // auf Impulse warten
       Serial.println("ruhe");
-      playmp3(1,1);
+      if (!intro_played){
+        playmp3(1,1);
+      }
       myMP3.playFolder(1,2);
-      delay(500);
-      while (digitalRead(BUSY_PIN) == LOW) {
+      while (!freizeichen_played) {
         if(digitalRead(Telefonpin)){ // Waehlscheibe betaetigt?
           wZustand = impuls0;
           wImpulse = 0;
@@ -66,6 +73,14 @@ void loop() {
           Serial.println("Waehlscheibe betaetigt?");
           delay(20); // Entprellen
           break;
+        }
+        uint8_t type = myMP3.readType();
+        if (myMP3.available()) {
+          if (type == DFPlayerPlayFinished) {
+            Serial.println("freizeichen fertig!");
+            freizeichen_played = true;
+            wZustand = NummerAuswerten;
+          }
         }
       }
       break;
@@ -115,17 +130,26 @@ void loop() {
       }
       break;
     case NummerAuswerten: // Hier sollte jetzt die Aktion mit der gewaehlten Nummer passieren
+      Serial.println("play nummern text ");
       playmp3(1,6);
+      Serial.println("play nummern text ");      
       for (int i = 0; i < textNummer.length(); i++) {
         int zahl=textNummer.substring(i, i+1).toInt();
         Serial.println(zahl);
         playmp3(2,zahl);
+        
       }
       int summe = 0;
       if (textNummer.length() == 4 ) {
         int zahl12 = textNummer.substring(0, 2).toInt();
         int zahl34 = textNummer.substring(2, 4).toInt();
+        Serial.print("zahl12: ");
+        Serial.println(zahl12);
+        Serial.print("zahl34: ");
+        Serial.println(zahl34);
         summe = zahl12 + zahl34;
+        Serial.print("summe: ");
+        Serial.println(summe);        
       }
       if(summe==100){
         Serial.println(F("Richtig"));
