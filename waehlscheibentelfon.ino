@@ -5,7 +5,7 @@
  
 #define Telefonpin 4        // zum Telefon
 #define Ziffer_Timeout 200   // nach dieser Zeit kommt kein weiterer Impuls mehr
-#define Wahl_Timeout 4000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
+#define Wahl_Timeout 3000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
 
 DFRobotDFPlayerMini myMP3;
 unsigned char nummerLaenge=0;    // Laenge der gewaehlten Nummer
@@ -14,6 +14,7 @@ String textNummer="";
 bool intro_played=false;
 
 void setup() {
+  randomSeed(analogRead(0)); 
   Serial.begin(115200);
   Serial1.begin(9600, SERIAL_8N1, 20, 21);
   Serial.println();
@@ -37,8 +38,8 @@ void setup() {
 }
 typedef enum {ruhe,impuls0,impuls1,naechsteZiffer,NummerAuswerten} wZustandtyp;
 wZustandtyp wZustand = ruhe;
-unsigned  long startzeit;
-unsigned  long dauer;
+unsigned long startzeit;
+unsigned long dauer;
 
 void playmp3(int folder,int file){
   bool fertig = false;
@@ -50,6 +51,15 @@ void playmp3(int folder,int file){
         fertig = true;
       }
     }
+  }
+}
+
+void playnumber(String myNummer){
+  for (int i = 0; i < myNummer.length(); i++) {
+    int zahl=myNummer.substring(i, i+1).toInt();
+    Serial.println(zahl);
+    playmp3(2,zahl);
+    delay(500);
   }
 }
 
@@ -134,31 +144,31 @@ void loop() {
       Serial.println("play nummern text ");
       playmp3(1,6);
       Serial.println("play nummern text ");      
-      for (int i = 0; i < textNummer.length(); i++) {
-        int zahl=textNummer.substring(i, i+1).toInt();
-        Serial.println(zahl);
-        playmp3(2,zahl);
-        
-      }
+      playnumber(textNummer);
       int summe = 0;
       if (textNummer.length() == 4 ) {
         int zahl12 = textNummer.substring(0, 2).toInt();
         int zahl34 = textNummer.substring(2, 4).toInt();
-        Serial.print("zahl12: ");
         Serial.println(zahl12);
-        Serial.print("zahl34: ");
         Serial.println(zahl34);
         summe = zahl12 + zahl34;
-        Serial.print("summe: ");
         Serial.println(summe);        
       }
       if(summe==100){
         Serial.println(F("Richtig"));
         playmp3(1,3);
+        int code12 = random(51, 100);
+        int code34 = 150-code12;
+        String code = String(code12) + String(code34);
+        playnumber(code);
       } else {
-        Serial.println(F("Falsch"));
+        Serial.println("Falsch");
         playmp3(1,4);
-      }
+        if ( textNummer.length() == 1 ) {
+          delay(6000);
+        }
+        delay(500);
+       }
       //wZustand=ruhe;
       playmp3(1,5);
       // Sleep forever
