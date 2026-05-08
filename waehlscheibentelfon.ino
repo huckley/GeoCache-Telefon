@@ -1,23 +1,38 @@
-/* GeoCache-Telefon V1.0 (cc-by-sa) Oliver Mezger 27.12.21 */
+#/* GeoCache-Telefon V1.0 (cc-by-sa) Oliver Mezger 27.12.21 */
  
 //#include <SoftwareSerial.h>
-#include <DFPlayerMini_Fast.h>
+#include <DFRobotDFPlayerMini.h>
  
 #define Telefonpin 4        // zum Telefon
 #define Ziffer_Timeout 200   // nach dieser Zeit kommt kein weiterer Impuls mehr
 #define Wahl_Timeout 2000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
- 
-DFPlayerMini_Fast myMP3;
+#define BUSY_PIN 5
+
+DFRobotDFPlayerMini myMP3;
 unsigned char nummerLaenge=0;    // Laenge der gewaehlten Nummer
 unsigned char nummer[20];        // gewaehlte Nummer
 String textNummer="";
  
 void setup() {
+  pinMode(BUSY_PIN, INPUT);
   Serial.begin(115200);
   Serial1.begin(9600, SERIAL_8N1, 20, 21);
-  myMP3.begin(Serial1);
+  Serial.println();
+  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+
+  if (!myMP3.begin(Serial1, /*isACK = */true, /*doReset = */true)) {  //Use serial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while(true);
+  }
+  Serial.println(F("DFPlayer Mini online."));
+  myMP3.setTimeOut(500); //Set serial communictaion time out 500ms
+
   Serial.println("start Setting volume to 20");
   myMP3.volume(20); // 0..30
+  myMP3.EQ(DFPLAYER_EQ_NORMAL);
+  myMP3.outputDevice(DFPLAYER_DEVICE_SD);
   delay(20);
   pinMode(Telefonpin,INPUT_PULLUP);
 }
@@ -25,6 +40,14 @@ typedef enum {ruhe,impuls0,impuls1,naechsteZiffer,NummerAuswerten} wZustandtyp;
 wZustandtyp wZustand = ruhe;
 unsigned  long startzeit;
 unsigned  long dauer;
+
+void playmp3(int folder,int file){
+  myMP3.playFolder(folder,file);
+  delay(500);
+  while (digitalRead(BUSY_PIN) == LOW) {
+  }
+}
+
 void loop() {
   static unsigned char wImpulse = 0; // Impulszaehler
   static unsigned long wMillis;      // Zeitmarken fuer TimeOuts
@@ -32,13 +55,18 @@ void loop() {
   switch (wZustand){
     case ruhe:                   // auf Impulse warten
       Serial.println("ruhe");
-      myMP3.playFolder(1,1);
-      if(digitalRead(Telefonpin)){ // Waehlscheibe betaetigt?
-        wZustand = impuls0;
-        wImpulse = 0;
-        nummerLaenge=0;
-        Serial.println("Waehlscheibe betaetigt?");
-        delay(20); // Entprellen
+      playmp3(1,1);
+      myMP3.playFolder(1,2);
+      delay(500);
+      while (digitalRead(BUSY_PIN) == LOW) {
+        if(digitalRead(Telefonpin)){ // Waehlscheibe betaetigt?
+          wZustand = impuls0;
+          wImpulse = 0;
+          nummerLaenge=0;
+          Serial.println("Waehlscheibe betaetigt?");
+          delay(20); // Entprellen
+          break;
+        }
       }
       break;
     case impuls0:                     // Waehlscheibenkontakt geschlossen
@@ -87,11 +115,11 @@ void loop() {
       }
       break;
     case NummerAuswerten: // Hier sollte jetzt die Aktion mit der gewaehlten Nummer passieren
-      myMP3.playFolder(1,6);
+      playmp3(1,6);
       for (int i = 0; i < textNummer.length(); i++) {
-        int zahl=textNummer.substring(i, 1).toInt();
+        int zahl=textNummer.substring(i, i+1).toInt();
         Serial.println(zahl);
-        myMP3.playFolder(2,i);
+        playmp3(2,zahl);
       }
       int summe = 0;
       if (textNummer.length() == 4 ) {
@@ -101,13 +129,13 @@ void loop() {
       }
       if(summe==100){
         Serial.println(F("Richtig"));
-        myMP3.playFolder(1,3);
+        playmp3(1,3);
       } else {
         Serial.println(F("Falsch"));
-        myMP3.playFolder(1,4);
+        playmp3(1,4);
       }
       //wZustand=ruhe;
-      myMP3.playFolder(1,5);
+      playmp3(1,5);
       // Sleep forever
       esp_deep_sleep_start();
       break;
