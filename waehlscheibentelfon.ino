@@ -4,6 +4,7 @@
 #include <DFRobotDFPlayerMini.h>
  
 #define Telefonpin 4        // zum Telefon
+#define mp3busypin 10       // zum mp3 player
 #define Ziffer_Timeout 200   // nach dieser Zeit kommt kein weiterer Impuls mehr
 #define Wahl_Timeout 3000    // nach dieser Zeit wird keine Ziffer mehr gewaehlt
 
@@ -35,6 +36,7 @@ void setup() {
   myMP3.outputDevice(DFPLAYER_DEVICE_SD);
   delay(20);
   pinMode(Telefonpin,INPUT_PULLUP);
+  pinMode(mp3busypin, INPUT); 
 }
 typedef enum {ruhe,impuls0,impuls1,naechsteZiffer,NummerAuswerten} wZustandtyp;
 wZustandtyp wZustand = ruhe;
@@ -44,13 +46,12 @@ unsigned long dauer;
 void playmp3(int folder,int file){
   bool fertig = false;
   myMP3.playFolder(folder,file);
+  delay(100);
   while (!fertig) {
-    uint8_t type = myMP3.readType();
-    if (myMP3.available()) {
-      if (type == DFPlayerPlayFinished) {
+     if (digitalRead(mp3busypin) == HIGH) {
         fertig = true;
-      }
     }
+    delay(500);
   }
 }
 
@@ -59,7 +60,6 @@ void playnumber(String myNummer){
     int zahl=myNummer.substring(i, i+1).toInt();
     Serial.println(zahl);
     playmp3(2,zahl);
-    delay(500);
   }
 }
 
@@ -75,6 +75,7 @@ void loop() {
         playmp3(1,1);
       }
       myMP3.playFolder(1,2);
+      delay(100);
       while (!freizeichen_played) {
         if(digitalRead(Telefonpin)){ // Waehlscheibe betaetigt?
           wZustand = impuls0;
@@ -85,13 +86,10 @@ void loop() {
           delay(20); // Entprellen
           break;
         }
-        uint8_t type = myMP3.readType();
-        if (myMP3.available()) {
-          if (type == DFPlayerPlayFinished) {
-            Serial.println("freizeichen fertig!");
-            freizeichen_played = true;
-            wZustand = NummerAuswerten;
-          }
+        if (digitalRead(mp3busypin) == HIGH) {
+          Serial.println("freizeichen fertig!");
+          freizeichen_played = true;
+          wZustand = NummerAuswerten;
         }
       }
       break;
@@ -164,13 +162,12 @@ void loop() {
       } else {
         Serial.println("Falsch");
         playmp3(1,4);
-        if ( textNummer.length() == 1 ) {
-          delay(6000);
-        }
-        delay(500);
-       }
+      }
       //wZustand=ruhe;
       playmp3(1,5);
+      playmp3(1,7);
+      delay(2000);
+      playmp3(1,7);
       // Sleep forever
       esp_deep_sleep_start();
       break;
