@@ -7,7 +7,6 @@ Die Wählscheibe wird als digitaler pull up genutzt.
 
 ## Aufbau
 ![Steckbrettaufbau](./fritzing/sketch_Steckplatine.svg "Steckbrettaufbau")
-Für die Verdrahtung siehe Ordner frizing.
 
 ## Audios
 Die Audios habe ich mit pico2wave und sox erzeugt.
