@@ -54,7 +54,7 @@ void playmp3(int folder,int file){
      if (digitalRead(mp3busypin) == HIGH) {
         fertig = true;
     }
-    delay(500);
+    delay(100);
   }
 }
 
@@ -63,6 +63,7 @@ void playnumber(String myNummer){
     int zahl=myNummer.substring(i, i+1).toInt();
     Serial.println(zahl);
     playmp3(2,zahl);
+    delay(200);
   }
 }
 
