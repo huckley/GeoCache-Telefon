@@ -1,4 +1,7 @@
-#/* GeoCache-Telefon V1.0 (cc-by-sa) Oliver Mezger 27.12.21 */
+#/* GeoCache-Telefon
+(cc-by-sa) Falk Hackenberger 10.05.2026 
+(cc-by-sa) Oliver Mezger 27.12.21 
+*/
  
 //#include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
