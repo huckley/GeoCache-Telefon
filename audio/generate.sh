@@ -8,7 +8,7 @@ for i in {0..9}; do
   pico2wave --lang=de-DE -w=mp3/02/00${i}_ziffer.wav "$i"
 done
 pico2wave --lang=de-DE -w=mp3/01/001_start.wav "Hallo, Herzlich willkommen, bitte gib Deine Zahlen von der letzten Station ein!"
-sox -n -r 8000 -b 16 mp3/01/002_freizeichen.wav synth 600 sine 425
+sox -n -r 8000 -b 16 mp3/01/002_freizeichen.wav synth 30 sine 425
 pico2wave --lang=de-DE -w=mp3/01/003_ok.wav "Herzlichen Glückwunsch, Deine Geheimzahl für die nächste Station lautet:"
 pico2wave --lang=de-DE -w=mp3/01/004_fehler.wav "Das war leider falsch! Wenn Du es nochmal probieren willst, mußt Du den Hörer auflegen und dann wieder abnehmen."
 pico2wave --lang=de-DE -w=mp3/01/005_ende.wav "Vielen Dank, ich hoffe Du hattest Spaß."
