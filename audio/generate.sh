@@ -14,6 +14,7 @@ pico2wave --lang=de-DE -w=mp3/01/004_fehler.wav "Das war leider falsch! Wenn Du 
 pico2wave --lang=de-DE -w=mp3/01/005_ende.wav "Vielen Dank, ich hoffe Du hattest Spaß."
 pico2wave --lang=de-DE -w=mp3/01/006_deine_Zahlen_waren.wav "Deine Zahlen waren:"
 pico2wave --lang=de-DE -w=mp3/01/007_bitte_auflegen.wav "Bitte lege den Hörer auf!"
+sox -n -r 8000 -b 16 -c 1 mp3/01/008_besetzt.wav synth 0.48 sine 425 pad 0 0.48 repeat 4
 find ./mp3 -name "*.wav" -exec bash -c 'lame --resample 22.05 -m m -b 64 "$1" "${1%.wav}.mp3"' _ {} \;
 find ./mp3 -name "*.mp3" -exec mp3gain -r -k {} +
 find ./mp3 -name "*.wav" -delete
