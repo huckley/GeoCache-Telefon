@@ -3,9 +3,9 @@
 (cc-by-sa) Oliver Mezger 27.12.21 
 */
  
-//#include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
- 
+#include <WiFi.h>
+
 #define Telefonpin 4        // zum Telefon
 #define mp3busypin 10       // zum mp3 player
 #define Ziffer_Timeout 200   // nach dieser Zeit kommt kein weiterer Impuls mehr
@@ -18,7 +18,9 @@ String textNummer="";
 bool intro_played=false;
 
 void setup() {
-  randomSeed(analogRead(0)); 
+  randomSeed(analogRead(0));
+  WiFi.mode(WIFI_OFF);
+  btStop();
   Serial.begin(115200);
   Serial1.begin(9600, SERIAL_8N1, 20, 21);
   Serial.println();
