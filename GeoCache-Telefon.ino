@@ -172,6 +172,7 @@ void loop() {
       playmp3(1,7);
       delay(2000);
       playmp3(1,7);
+      myMP3.sleep();
       // Sleep forever
       esp_deep_sleep_start();
       break;
